@@ -1,3 +1,4 @@
+//Generic ESP8266 Module
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
@@ -14,6 +15,89 @@
 #define STASSID "M+S-Fibre-G"
 #define STAPSK  "****"
 #endif
+
+const char* STYLE_CSS = " \
+body {\
+    position: relative;\
+    border: 5px solid #888;\
+    margin: 0;\
+    padding: 0;\
+}\
+\
+.center {\
+    margin: 0;\
+    padding: auto;\
+    position: absolute;\
+    font-weight: bold;\
+}\
+\
+.on {\
+    margin: 0;\
+    padding: auto;\
+    width: 100%;\
+    height: 100%;\
+    text-align: center;\
+    font-family: sans-serif;\
+    font-size: 400%;\
+    color: #000;\
+    background-color: #fd6;\
+}\
+\
+.off {\
+    margin: 0;\
+    padding: auto;\
+    width: 100%;\
+    height: 100%;\
+    text-align: center;\
+    font-family: sans-serif;\
+    font-size: 400%;\
+    color: #fff;\
+    background-color: #000;\
+}\
+\
+.button {\
+    border: solid 1px;\
+    border-radius: 5px;\
+    padding: 10px;\
+    margin: 0;\
+    font-size: 70%;\
+    font-weight: normal;\
+    text-color: #888;\
+}\
+\
+a:link,\
+a:visited {\
+    text-decoration: none;\
+    color: #888;\
+}\
+";
+
+const char* ON_HTML = "\
+<html>\
+  <head>\
+    <meta name='viewport' content='width=320, initial-scale=1'>\
+    <link rel='stylesheet' href='style.css'>\
+  </head>\
+  <body><div class='on center'>\
+    <p>ON</p>\
+    <p><a href='off' class='button'>OFF</a></p>\
+  </div></body>\
+</html>\
+";
+
+const char* OFF_HTML = "\
+<html>\
+  <head>\
+    <meta name='viewport' content='width=320, initial-scale=1'>\
+    <link rel='stylesheet' href='style.css'>\
+  </head>\
+  <body><div class='off center'>\
+    <p><a href='on' class='button'>ON</a></p>\
+    <p>OFF</p>\
+  </div></body>\
+</html>\
+";
+
 
 #define MDNSNAME "power"
 const char* ssid = STASSID;
@@ -101,17 +185,22 @@ void setup(void) {
   server.on("/", handleRoot);
 
   server.on("/off", []() {
-    server.send(200, "text/plain", "OFF");
+    server.send(200, "text/html", OFF_HTML);
     log("OFF");
     digitalWrite(RELAY, LOW);
     digitalWrite(LED, 0); // suppose "on"
   });
 
   server.on("/on", []() {
-    server.send(200, "text/plain", "ON");
+    server.send(200, "text/html", ON_HTML);
     log("ON");
     digitalWrite(RELAY, HIGH);
     digitalWrite(LED, 1); // suppose "off"
+  });
+
+  server.on("/style.css", []() {
+    server.send(200, "text/plain", STYLE_CSS);
+    log("CSS");
   });
 
   server.onNotFound(handleNotFound);
